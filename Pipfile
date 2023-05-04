@@ -1,0 +1,19 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+aiogram = "*"
+sqlalchemy = {extras = ["asyncio"], version = "*"}
+asyncpg = "*"
+environs = "*"
+apscheduler = "==3.10.1"
+
+[dev-packages]
+
+[requires]
+python_version = "3.11"
+
+[pipenv]
+allow_prereleases = true

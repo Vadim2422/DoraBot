@@ -1,0 +1,2 @@
+class PhotosAreOverError(Exception):
+    pass
