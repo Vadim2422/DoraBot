@@ -9,7 +9,7 @@ from aiogram import Bot
 from aiogram.types import InputFile
 
 from bot.config_data.photo import Photo
-from bot.files.json_files import get_send_users, get_dataset, get_cool, get_links
+# from bot.files.json_files import get_send_users, get_dataset, get_cool, get_links
 
 
 async def send_user(bot: Bot, photo):

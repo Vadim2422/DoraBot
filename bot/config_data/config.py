@@ -1,7 +1,7 @@
-from environs import Env
 from dataclasses import dataclass, field
-
+from dotenv import load_dotenv
 from sqlalchemy import URL
+import os
 
 
 @dataclass
@@ -11,6 +11,13 @@ class Bot:
 
     def is_admin(self, user_id) -> bool:
         return user_id == self.admin
+
+
+@dataclass
+class Vk:
+    user_token: str
+    group_token: str
+    api_v: str
 
 
 @dataclass
@@ -30,23 +37,25 @@ class Postgres:
 @dataclass
 class Config:
     bot: Bot
-    postgres: Postgres
-    vk_token: str
+    # postgres: Postgres
+    vk: Vk
 
 
 def load_config():
-    env: Env = Env()
-    env.read_env()
+    load_dotenv()
 
-    return Config(bot=Bot(env('BOT_TOKEN'), admin=env.int('ADMIN')),
-                  postgres=Postgres(drivername=env('P_DRIVERNAME'),
-                                    host=env('P_HOST'),
-                                    port=env('P_PORT'),
-                                    username=env('P_USERNAME'),
-                                    password=env('P_PASSWORD'),
-                                    database=env('P_DATABASE'),
-                                    query={}),
-                  vk_token=env('VK_TOKEN'))
+    return Config(bot=Bot(os.getenv('BOT_TOKEN'), admin=int(os.getenv('ADMIN'))),
+                  vk=Vk(user_token=os.getenv('USER_TOKEN'),
+                        group_token=os.getenv('GROUP_TOKEN'),
+                        api_v=os.getenv('API_V'))
+                  )
+    # postgres=Postgres(drivername=os.getenv('POSTGRES_DRIVERNAME'),
+    #                   host=os.getenv('POSTGRES_HOST'),
+    #                   port=os.getenv('POSTGRES_PORT'),
+    #                   username=os.getenv('POSTGRES_USER'),
+    #                   password=os.getenv('POSTGRES_PASSWORD'),
+    #                   database=os.getenv('POSTGRES_DB'),
+    #                   query={}),
 
 
 config = load_config()

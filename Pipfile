@@ -6,9 +6,10 @@ name = "pypi"
 [packages]
 aiogram = "*"
 sqlalchemy = {extras = ["asyncio"], version = "*"}
-asyncpg = "*"
-environs = "*"
-apscheduler = "==3.10.1"
+aiosqlite = "*"
+python-dotenv = "*"
+alembic = "*"
+apscheduler = "==3.10.4"
 
 [dev-packages]
 

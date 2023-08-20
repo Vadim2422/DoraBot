@@ -1,11 +1,13 @@
-from typing import Callable, Dict, Any, Awaitable, Annotated
+from typing import Callable, Dict, Any, Awaitable
+
+from aiogram.dispatcher.flags import get_flag
 from aiogram.types import Message
 from aiogram import BaseMiddleware
 
-from bot.utils.unit_of_work import UnitOfWork, IUnitOfWork
+from main import scheduler
 
 
-class DBMiddleware(BaseMiddleware):
+class SchedulerMiddleware(BaseMiddleware):
 
     async def __call__(
             self,
@@ -13,5 +15,7 @@ class DBMiddleware(BaseMiddleware):
             event: Message,
             data: Dict[str, Any]
     ) -> Any:
-        data['uow'] = UnitOfWork()
+        is_scheduler = get_flag(data, 'scheduler')
+        if is_scheduler:
+            data['scheduler'] = scheduler
         return await handler(event, data)

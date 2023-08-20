@@ -1,4 +1,3 @@
-from .models import User, Dora
-from .postges.postgres_base import Base
+from db.models import User, Links
 
-__all__ = ["Base", "User", "Dora"]
+__all__ = ["Base", "User", "Links"]

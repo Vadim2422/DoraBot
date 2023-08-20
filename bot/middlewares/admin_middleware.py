@@ -3,7 +3,6 @@ from aiogram.types import Message
 from aiogram import BaseMiddleware
 
 from bot.config_data.config import config
-from db.postges.postgres_base import session
 
 
 class AdminMiddleware(BaseMiddleware):

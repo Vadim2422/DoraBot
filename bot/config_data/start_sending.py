@@ -1,36 +1,37 @@
-import asyncio
-import datetime
-
 from sqlalchemy import select, func
 
-from db import Dora, User
-from db.postges.postgres_base import create_async_session
+from bot.utils.unit_of_work import UnitOfWork
+from main import scheduler
+from db import Links, User
+# from db.base import create_async_session
 from aiogram import Bot
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from bot.config_data.config import config
 
 bot: Bot = Bot(token=config.bot.token)
 
 
 def start_sending_msg():
-    scheduler = AsyncIOScheduler(timezone="Europe/Moscow")
-    scheduler.add_job(send_test_msg, trigger='cron', hour='*', minute=0)
-    scheduler.start()
+    if not scheduler.running:
+        scheduler.add_job(send_scheduler_msg, trigger='cron', minute='*', id="start")
+        scheduler.start()
 
 
-async def send_test_msg():
-    session = create_async_session()
-    async with session() as session:
-        stmt = select(Dora).where(Dora.is_dataset == True).order_by(func.random()).limit(1)
-        dora = await session.scalar(stmt)
-        if not dora:
-            return
-        dora.is_dataset = False
-        await session.commit()
-        stmt = select(User).where(User.is_dora == True)
-        for user in await session.scalars(stmt):
+async def send_scheduler_msg():
+    uow = UnitOfWork()
+    async with uow:
+        dora = await uow.links.find_random(is_dataset=True)
+        if dora:
+            dora.is_dataset = False
+        else:
+            dora = await uow.links.find_random(is_cool=True)
+            if not dora:
+                return
+
+        d = {"is_dora": True}
+        users = await uow.users.find_all(filters=d)
+        for user in users:
             await bot.send_photo(user.user_id, photo=dora.file_id)
-        stmt = select(func.count()).where(Dora.is_dataset == True).select_from(Dora)
-        count = await session.scalar(stmt)
+        await uow.commit()
+        count = await uow.links.count_records(is_dataset=True)
         if count <= 5:
-            await bot.send_message(config.bot.admin, f'Добавь фотки в датасет! Осталось {count} фотографий!')
+            await bot.send_message(config.bot.admin, f'Добавь фотки в датасет! Осталось {count}!')

@@ -1,0 +1,66 @@
+version: '3.7'
+services:
+  postgres:
+    image: postgres:14
+    user: root
+    container_name: postgres
+    env_file:
+      - .env
+#    environment:
+#      POSTGRES_DB: "db"
+#      POSTGRES_USER: "admin"
+#      POSTGRES_PASSWORD: "admin"
+    restart: on-failure
+    ports:
+      - "8084:5432"
+#  auth_db:
+#    image: 'postgres:14-alpine'
+#    container_name: auth_db
+#    user: root
+#    environment:
+#      - POSTGRES_USER=compose-postgres
+#      - POSTGRES_PASSWORD=compose-postgres
+##    volumes:
+##      - ./volumes/db/auth:/var/lib/postgresql/data
+#    restart: on-failure
+
+
+#  db:
+#    image: postgres:14-alpine
+#    container_name: postgres_db
+#    user: root
+#    environment:
+#      - POSTGRES_USER=admin
+#      - POSTGRES_PASSWORD=admin
+#      - POSTGRES_DATABASE=db
+##    env_file:
+##      - ".env"
+#    volumes:
+#      - pgdata:/var/lib/postgresql/data
+#    restart: on-failure
+#    ports:
+#      - "8083:5432"
+  bot:
+    image: dora_bot
+#    build: .
+    container_name: bot
+#    command:
+#      - python app/main.py
+    user: root
+    env_file:
+      - .env
+#    environment:
+#      - BOT_TOKEN=5971146486:AAHYq4q0fHGDaN6vY_qb_xzljq801q9KOM4
+#      - ADMIN=889732033
+#      - POSTGRES_DRIVERNAME=postgresql+asyncpg
+#      - VK_TOKEN=vk1.a.ePWczAD1i1B0rsfuJT-WRskCY8mHJ583RybNw3ly5cI0WU3nwlkxZaKNCCz9vtzLnqvbplHZBe8Zl43SebORTasgqg3etUKP3xgmFGqk8PkvqX6J_s-FcS1TmhbySAWNm2zHkgTKOOvnwJOfCvEsxmrlsE6RKR1yiNEiX686dndcDlJoNKXknTkIvFMjrYxfMmMEU0YUz8gdhTg2Yl64_A
+#      - POSTGRES_USER=admin
+#      - POSTGRES_PASSWORD=admin
+#      - POSTGRES_DATABASE=db
+#      - POSTGRES_HOST=postgres
+#      - POSTGRES_PORT=8084
+#    restart: on-failure
+    depends_on:
+      - postgres
+volumes:
+  pgdata:

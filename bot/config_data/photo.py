@@ -5,7 +5,6 @@ import base64
 from bot.errors.photos_are_over import PhotosAreOverError
 import aiohttp
 
-from bot.files.json_files import add_photo_to_, delete_photo_from_
 
 
 class Photo:
