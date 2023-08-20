@@ -46,7 +46,7 @@ async def main() -> None:
 
 
 if __name__ == '__main__':
-    await init_data()
+    asyncio.run(init_data())
     start_thread_flask()
     asyncio.run(main())
 
