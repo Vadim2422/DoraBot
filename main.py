@@ -25,9 +25,11 @@ async def stop_bot():
 async def init_data():
     uow = UnitOfWork()
     async with uow:
-        admin = Admin(user_id=config.bot.admin)
-        await uow.admin.add_one(admin)
-        await uow.commit()
+        admin = await uow.admin.find_one(Admin.user_id == config.bot.admin)
+        if not admin:
+            admin = Admin(user_id=config.bot.admin)
+            await uow.admin.add_one(admin)
+            await uow.commit()
 
 
 async def main() -> None:
@@ -44,6 +46,7 @@ async def main() -> None:
 
 
 if __name__ == '__main__':
+    await init_data()
     start_thread_flask()
     asyncio.run(main())
 
