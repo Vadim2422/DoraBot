@@ -8,6 +8,13 @@ __pycache__/
 # C extensions
 *.so
 
+#replit
+.replit
+/**/dora.db
+poetry.lock
+pyproject.toml
+replit.nix
+
 # Distribution / packaging
 .Python
 env/
