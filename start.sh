@@ -1,4 +1,4 @@
 #!/bin/bash
 touch ./db/dora.db
-pip install alembic
+pip install -r requirements.txt
 alembic upgrade head
