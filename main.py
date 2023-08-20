@@ -11,6 +11,8 @@ from bot.utils.unit_of_work import UnitOfWork
 
 from bot.utils.comands import set_commands
 from db.models import Admin
+from flask_service.service import start_thread_flask
+
 bot: Bot = Bot(token=config.bot.token)
 dp: Dispatcher = Dispatcher()
 scheduler = AsyncIOScheduler(timezone="Europe/Moscow")
@@ -42,6 +44,6 @@ async def main() -> None:
 
 
 if __name__ == '__main__':
-    # asyncio.run(init_data())
+    start_thread_flask()
     asyncio.run(main())
 
