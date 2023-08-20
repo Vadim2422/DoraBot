@@ -12,7 +12,7 @@ bot: Bot = Bot(token=config.bot.token)
 
 def start_sending_msg():
     if not scheduler.running:
-        scheduler.add_job(send_scheduler_msg, trigger='cron', minute='*', id="start")
+        scheduler.add_job(send_scheduler_msg, trigger='cron', hour='*', minute='0', id="start")
         scheduler.start()
 
 
