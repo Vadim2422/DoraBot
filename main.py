@@ -1,8 +1,10 @@
 import asyncio
-from aiogram import Bot, Dispatcher
+from threading import Thread
+
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from aiogram import Bot, Dispatcher
 
-
+from bot.config_data.schedule_sending import send_scheduler_msg
 from bot.middlewares.db_middleware import DBMiddleware
 from bot.config_data.config import config
 from bot.handlers import user_handlers, admin_handlers
@@ -15,7 +17,6 @@ from flask_service.service import start_thread_flask
 
 bot: Bot = Bot(token=config.bot.token)
 dp: Dispatcher = Dispatcher()
-scheduler = AsyncIOScheduler(timezone="Europe/Moscow")
 
 
 async def stop_bot():
@@ -37,7 +38,10 @@ async def main() -> None:
         Entry point
     """
 
-    dp.shutdown.register(stop_bot)
+    # dp.shutdown.register(stop_bot)
+    scheduler = AsyncIOScheduler(timezone="Europe/Moscow")
+    scheduler.add_job(send_scheduler_msg, 'cron', hour='*', minute='0')
+    scheduler.start()
     dp.message.middleware.register(DBMiddleware())
     dp.callback_query.middleware.register(DBMiddleware())
     dp.include_routers(user_handlers.router, admin_handlers.router)
@@ -46,7 +50,9 @@ async def main() -> None:
 
 
 if __name__ == '__main__':
-    asyncio.run(init_data())
     start_thread_flask()
-    asyncio.run(main())
 
+    loop = asyncio.get_event_loop()
+    asyncio.run(init_data())
+    loop.create_task(main())
+    loop.run_forever()

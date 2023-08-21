@@ -1,22 +1,24 @@
-from sqlalchemy import select, func
+import asyncio
+import time
 
+from sqlalchemy import select, func
 from bot.utils.unit_of_work import UnitOfWork
-from main import scheduler
 from db import Links, User
 # from db.base import create_async_session
 from aiogram import Bot
 from bot.config_data.config import config
+from threading import Thread
 
 bot: Bot = Bot(token=config.bot.token)
 
 
-def start_sending_msg():
-    if not scheduler.running:
-        scheduler.add_job(send_scheduler_msg, trigger='cron', hour='*', minute='0', id="start")
-        scheduler.start()
+
+
+
 
 
 async def send_scheduler_msg():
+    print("vmkemvcle")
     uow = UnitOfWork()
     async with uow:
         dora = await uow.links.find_random(is_dataset=True)

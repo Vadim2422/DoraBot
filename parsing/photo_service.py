@@ -154,9 +154,12 @@ class PhotoService(BaseService):
         no_repeat_links = set(links)
         dora_links: list[Links] = []
         for link in no_repeat_links:
-            await self.add_photo_to_db(Links(link=link))
+            dora_links.append(Links(link=link))
+        await self.add_photo_to_db(dora_links)
+        # for link in no_repeat_links:
+        #     await self.add_photo_to_db(Links(link=link))
 
-    async def add_photo_to_db(self, link_db: Links):
+    async def add_photo_to_db(self, link_db):
         async with self.uow:
-            await self.uow.links.add_one(link_db)
+            await self.uow.links.add_all(link_db)
             await self.uow.commit()

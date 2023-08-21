@@ -9,8 +9,8 @@ sqlalchemy = {extras = ["asyncio"], version = "*"}
 aiosqlite = "*"
 python-dotenv = "*"
 alembic = "*"
-apscheduler = "==3.10.4"
 flask = "*"
+apscheduler = "==3.10.4"
 
 [dev-packages]
 

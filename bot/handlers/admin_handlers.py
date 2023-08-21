@@ -10,7 +10,6 @@ from db.models import Admin
 from main import bot
 from parsing.photo_service import PhotoService
 from bot.config_data.config import config
-from bot.config_data.start_sending import start_sending_msg
 from bot.keyboards.admin_keyboard import get_admin_ikb
 from bot.utils.unit_of_work import IUnitOfWork
 from db import Links
@@ -71,7 +70,7 @@ async def delete_last(message: types.Message, session: async_sessionmaker):
 
 @router.message(Command('start_sending'))
 async def start_sending(message: types.Message):
-    start_sending_msg()
+    # start_sending_msg()
     await message.answer('Рассылка активирована')
 
 
@@ -109,7 +108,7 @@ async def cool(query: CallbackQuery, uow: IUnitOfWork):
                                                             reply_markup=query.message.reply_markup)
             new_dora.file_id = update_message.photo[-1].file_id
             admin: Admin = await uow.admin.find_one(Admin.user_id == query.from_user.id)
-            admin.file_id_photo = new_dora.file_id
+            admin.file_id = new_dora.file_id
             await uow.commit()
 
         dora: Links = await uow.links.find_one(Links.file_id == tmp)
