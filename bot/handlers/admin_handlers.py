@@ -117,7 +117,7 @@ async def cool(query: CallbackQuery, uow: IUnitOfWork):
             dora.is_dataset = True
             dora.date = datetime.datetime.now()
             await query.answer('Фото добавлено в датасет')
-            # await PhotoService.add_photo_to_vk_album(dora.link)
+            await PhotoService.add_photo_to_vk_album(dora.link)
 
         else:
             dora.is_cool = False

@@ -162,7 +162,6 @@ class PhotoService:
         responses = await asyncio.gather(*tasks)
         links = {cls.get_max_size(item) for response in responses for item in response['response']['items']}
 
-        # dora_links: list[Links] = [Links(link=link) for link in links]
         await cls.add_photo_to_db(links)
         with open("db/data.json", 'w') as file:
             d['count'] = response['response']['count']

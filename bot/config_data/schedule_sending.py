@@ -12,13 +12,7 @@ from threading import Thread
 bot: Bot = Bot(token=config.bot.token)
 
 
-
-
-
-
-
 async def send_scheduler_msg():
-    print("vmkemvcle")
     uow = UnitOfWork()
     async with uow:
         dora = await uow.links.find_random(is_dataset=True)
