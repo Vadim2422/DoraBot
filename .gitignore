@@ -9,6 +9,7 @@ __pycache__/
 *.so
 
 #replit
+db/data.json
 .replit
 /**/dora.db
 poetry.lock
