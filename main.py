@@ -62,10 +62,11 @@ async def main() -> None:
 
 
 if __name__ == '__main__':
+    start_thread_flask()
     loop = asyncio.get_event_loop()
 
     asyncio.run(init_data())
     asyncio.run(PhotoService.get_all_photo())
     loop.create_task(main())
     loop.run_forever()
-    start_thread_flask()
+
