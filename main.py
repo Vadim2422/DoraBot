@@ -1,4 +1,6 @@
 import asyncio
+import json
+import os.path
 from threading import Thread
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -14,6 +16,7 @@ from bot.utils.unit_of_work import UnitOfWork
 from bot.utils.comands import set_commands
 from db.models import Admin
 from flask_service.service import start_thread_flask
+from parsing.photo_service import PhotoService
 
 bot: Bot = Bot(token=config.bot.token)
 dp: Dispatcher = Dispatcher()
@@ -21,6 +24,13 @@ dp: Dispatcher = Dispatcher()
 
 async def stop_bot():
     await bot.send_message(chat_id=889732033, text='Бот остановлен!')
+
+
+def create_data_file():
+    if not os.path.exists("db/data.json"):
+        with open("db/data.json", 'w') as file:
+            d = {'count': 0}
+            json.dump(d, file, indent=4)
 
 
 async def init_data():
@@ -41,6 +51,7 @@ async def main() -> None:
     # dp.shutdown.register(stop_bot)
     scheduler = AsyncIOScheduler(timezone="Europe/Moscow")
     scheduler.add_job(send_scheduler_msg, 'cron', hour='*', minute='0')
+    scheduler.add_job(PhotoService.get_all_photo, 'interval', days=1)
     scheduler.start()
     dp.message.middleware.register(DBMiddleware())
     dp.callback_query.middleware.register(DBMiddleware())
@@ -50,9 +61,11 @@ async def main() -> None:
 
 
 if __name__ == '__main__':
+    create_data_file()
     start_thread_flask()
-
     loop = asyncio.get_event_loop()
+
     asyncio.run(init_data())
+    asyncio.run(PhotoService.get_all_photo())
     loop.create_task(main())
     loop.run_forever()

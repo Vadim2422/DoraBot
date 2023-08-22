@@ -8,10 +8,13 @@ import json
 import aiohttp
 
 from bot.services.base_service import BaseService
+from bot.utils.unit_of_work import UnitOfWork
 from db import Links
 
 
-class PhotoService(BaseService):
+class PhotoService:
+    # link: str = 'https://vk.com/cutedori'
+    link: str = 'https://vk.com/publicdoracuterockkk'
     base_url: str = 'https://api.vk.com/method/'
     group_album_id: int = 295897951
     group_id: int = 174635541
@@ -21,12 +24,13 @@ class PhotoService(BaseService):
     user_token: str = config.vk.user_token
     api_v: str = config.vk.api_v
 
-    async def get_id(self, link: str) -> int:
+    @classmethod
+    async def get_id(cls, link: str) -> int:
         async with aiohttp.ClientSession() as session:
-            async with session.get(self.base_url + 'utils.resolveScreenName', params={
+            async with session.get(cls.base_url + 'utils.resolveScreenName', params={
                 'screen_name': link.replace('https://', '').replace('vk.com/', ''),
-                'access_token': self.user_token,
-                'v': self.api_v
+                'access_token': cls.user_token,
+                'v': cls.api_v
             }) as resp:
                 return (await resp.json())['response']['object_id']
 
@@ -126,7 +130,8 @@ class PhotoService(BaseService):
             }) as resp:
                 return json.loads(await resp.content.read())
 
-    def get_max_size(self, item: dict) -> str:
+    @staticmethod
+    def get_max_size(item: dict) -> str:
         max_size: int = 0
         link: str = ''
         for size in item['sizes']:
@@ -135,31 +140,40 @@ class PhotoService(BaseService):
                 max_size = size['height']
         return link
 
-    async def get_all_photo(self, link: str):
-        links: list[str] = []
+    @classmethod
+    async def get_all_photo(cls):
         offset: int = 0
-
         tasks = []
-        owner_id = await self.get_id(link)
-        response = await self.get_resp(owner_id=owner_id)
-        count = response['response']['count']
-
-        while count > offset:
-            tasks.append(asyncio.create_task(self.get_resp(owner_id=owner_id, offset=offset)))
+        owner_id = await cls.get_id(cls.link)
+        response = await cls.get_resp(owner_id=owner_id)
+        current_count = response['response']['count']
+        with open("db/data.json") as file:
+            d = json.load(file)
+        count = d['count']
+        current_count = current_count - count
+        if not current_count:
+            return
+        while current_count > offset:
+            if current_count - offset >= 1000:
+                tasks.append(asyncio.create_task(cls.get_resp(owner_id=owner_id, offset=offset)))
+            else:
+                tasks.append(asyncio.create_task(cls.get_resp(owner_id=owner_id, count=current_count - offset, offset=offset)))
             offset += 1000
         responses = await asyncio.gather(*tasks)
-        for response in responses:
-            for item in response['response']['items']:
-                links.append(self.get_max_size(item))
-        no_repeat_links = set(links)
-        dora_links: list[Links] = []
-        for link in no_repeat_links:
-            dora_links.append(Links(link=link))
-        await self.add_photo_to_db(dora_links)
-        # for link in no_repeat_links:
-        #     await self.add_photo_to_db(Links(link=link))
+        links = {cls.get_max_size(item) for response in responses for item in response['response']['items']}
 
-    async def add_photo_to_db(self, link_db):
-        async with self.uow:
-            await self.uow.links.add_all(link_db)
-            await self.uow.commit()
+        # dora_links: list[Links] = [Links(link=link) for link in links]
+        await cls.add_photo_to_db(links)
+        with open("db/data.json", 'w') as file:
+            d['count'] = response['response']['count']
+            json.dump(d, file, indent=4)
+
+    @staticmethod
+    async def add_photo_to_db(link_db):
+        uow = UnitOfWork()
+        async with uow:
+            all_past_links = [link.link for link in (await uow.links.find_all())]
+            add_models = [Links(link=link) for link in link_db if link not in all_past_links]
+            uow.links.add_all(add_models)
+            await uow.commit()
+

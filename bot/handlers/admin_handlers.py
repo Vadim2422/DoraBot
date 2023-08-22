@@ -89,7 +89,7 @@ async def add_dataset(message: types.Message, uow: IUnitOfWork):
     link = msg[1]
     try:
         async with uow:
-            await PhotoService(uow).get_all_photo(link)
+            await PhotoService.get_all_photo()
         await message.answer('Датасет добавлен')
     except Exception:
         await message.answer('Неудачно')
