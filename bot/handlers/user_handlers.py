@@ -25,6 +25,7 @@ async def cmd_start(msg: types.Message, uow: IUnitOfWork) -> None:
                 return
             else:
                 user.is_dora = True
+                await uow.commit()
         else:
             await uow.users.add_one(User(user_id=msg.from_user.id))
             await uow.commit()
