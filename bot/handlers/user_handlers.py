@@ -39,7 +39,7 @@ async def cmd_start(msg: types.Message, uow: IUnitOfWork) -> None:
 @router.message(Command('stop'))
 async def stop(message: types.Message, uow: IUnitOfWork):
     async with uow:
-        user = await uow.users.find_one(user_id=message.from_user.id)
+        user = await uow.users.find_one(User.user_id == message.from_user.id)
         user.is_dora = False
         await uow.commit()
         await message.answer('Вы отписались от рассылки')
