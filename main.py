@@ -1,7 +1,8 @@
 import asyncio
 import json
 import os.path
-from threading import Thread
+from alembic import command
+from alembic.config import Config
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from aiogram import Bot, Dispatcher
@@ -26,14 +27,9 @@ async def stop_bot():
     await bot.send_message(chat_id=889732033, text='Бот остановлен!')
 
 
-def create_data_file():
-    if not os.path.exists("db/data.json"):
-        with open("db/data.json", 'w') as file:
-            d = {'count': 0}
-            json.dump(d, file, indent=4)
-
-
 async def init_data():
+    command.upgrade(config=Config(file_='./alembic.ini'), revision='head')
+
     uow = UnitOfWork()
     async with uow:
         admin = await uow.admin.find_one(Admin.user_id == config.bot.admin)
@@ -41,6 +37,11 @@ async def init_data():
             admin = Admin(user_id=config.bot.admin)
             await uow.admin.add_one(admin)
             await uow.commit()
+
+    if not os.path.exists("db/data.json"):
+        with open("db/data.json", 'w') as file:
+            d = {'count': 0}
+            json.dump(d, file, indent=4)
 
 
 async def main() -> None:
@@ -61,7 +62,6 @@ async def main() -> None:
 
 
 if __name__ == '__main__':
-    create_data_file()
     start_thread_flask()
     loop = asyncio.get_event_loop()
 
