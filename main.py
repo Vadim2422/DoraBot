@@ -3,7 +3,7 @@ import json
 import os.path
 from alembic import command
 from alembic.config import Config
-
+import logging
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from aiogram import Bot, Dispatcher
 
@@ -17,6 +17,7 @@ from bot.utils.unit_of_work import UnitOfWork
 from bot.utils.comands import set_commands
 from db.models import Admin
 from flask_service.service import start_thread_flask
+from logs.logger import logger
 from parsing.photo_service import PhotoService
 
 bot: Bot = Bot(token=config.bot.token)
@@ -62,11 +63,15 @@ async def main() -> None:
 
 
 if __name__ == '__main__':
-    start_thread_flask()
-    loop = asyncio.get_event_loop()
+    while True:
+        try:
+            start_thread_flask()
+            loop = asyncio.get_event_loop()
 
-    asyncio.run(init_data())
-    asyncio.run(PhotoService.get_all_photo())
-    loop.create_task(main())
-    loop.run_forever()
+            asyncio.run(init_data())
+            asyncio.run(PhotoService.get_all_photo())
+            loop.create_task(main())
+            loop.run_forever()
+        except Exception as ex:
+            logger.error(ex)
 
