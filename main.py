@@ -50,7 +50,7 @@ async def main() -> None:
         Entry point
     """
 
-    # dp.shutdown.register(stop_bot)
+    dp.shutdown.register(stop_bot)
     scheduler = AsyncIOScheduler(timezone="Europe/Moscow")
     scheduler.add_job(send_scheduler_msg, 'cron', hour='*', minute='0')
     scheduler.add_job(PhotoService.get_all_photo, 'interval', days=1)
