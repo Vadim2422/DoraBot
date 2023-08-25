@@ -37,7 +37,7 @@ class Postgres:
 @dataclass
 class Config:
     bot: Bot
-    # postgres: Postgres
+    secret: str
     vk: Vk
 
 
@@ -45,6 +45,7 @@ def load_config():
     load_dotenv()
 
     return Config(bot=Bot(os.getenv('BOT_TOKEN'), admin=int(os.getenv('ADMIN'))),
+                  secret=os.getenv('SECRET'),
                   vk=Vk(user_token=os.getenv('USER_TOKEN'),
                         group_token=os.getenv('GROUP_TOKEN'),
                         api_v=os.getenv('API_V'))

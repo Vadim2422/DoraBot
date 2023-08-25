@@ -1,11 +1,14 @@
 import asyncio
 import json
 import os.path
+
+import uvicorn
+from aiogram.types import Update
 from alembic import command
 from alembic.config import Config
-import logging
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from aiogram import Bot, Dispatcher
+from fastapi import FastAPI, Request
 
 from bot.config_data.schedule_sending import send_scheduler_msg
 from bot.middlewares.db_middleware import DBMiddleware
@@ -16,12 +19,37 @@ from bot.utils.unit_of_work import UnitOfWork
 
 from bot.utils.comands import set_commands
 from db.models import Admin
-from flask_service.service import start_thread_flask
 from logs.logger import logger
 from parsing.photo_service import PhotoService
 
+WEBHOOK_PATH = f"/bot/{config.secret}"
+WEBHOOK_URL = "https://dorabot.vadim2422.repl.co" + WEBHOOK_PATH
+
 bot: Bot = Bot(token=config.bot.token)
 dp: Dispatcher = Dispatcher()
+
+app = FastAPI()
+
+
+@app.get("/")
+async def index():
+    return "Ok"
+
+
+@app.on_event("startup")
+async def start():
+    await bot.set_webhook(WEBHOOK_URL)
+
+
+@app.post(WEBHOOK_PATH)
+async def webhook(request: Request):
+    update = Update(**await request.json())
+    await dp.feed_update(bot, update)
+
+
+@app.on_event("shutdown")
+async def shutdown():
+    await bot.session.close()
 
 
 async def stop_bot():
@@ -51,27 +79,26 @@ async def main() -> None:
     """
 
     # dp.shutdown.register(stop_bot)
+    await set_commands(bot)
+    dp.message.middleware.register(DBMiddleware())
+    dp.callback_query.middleware.register(DBMiddleware())
+    dp.include_routers(user_handlers.router, admin_handlers.router)
     scheduler = AsyncIOScheduler(timezone="Europe/Moscow")
     scheduler.add_job(send_scheduler_msg, 'cron', hour='*', minute='0')
     scheduler.add_job(PhotoService.get_all_photo, 'interval', days=1)
     scheduler.start()
-    dp.message.middleware.register(DBMiddleware())
-    dp.callback_query.middleware.register(DBMiddleware())
-    dp.include_routers(user_handlers.router, admin_handlers.router)
-    await set_commands(bot)
-    await dp.start_polling(bot)
+    config_uvicorn = uvicorn.Config(app=app, host="localhost", port=8080)
+    server = uvicorn.Server(config_uvicorn)
+    task = asyncio.create_task(server.serve())
+    await asyncio.gather(task)
+
+    # await dp.start_polling(bot)
 
 
 if __name__ == '__main__':
+    asyncio.run(init_data())
     while True:
         try:
-            start_thread_flask()
-            loop = asyncio.get_event_loop()
-
-            asyncio.run(init_data())
-            asyncio.run(PhotoService.get_all_photo())
-            loop.create_task(main())
-            loop.run_forever()
+            asyncio.run(main())
         except Exception as ex:
             logger.error(ex)
-
