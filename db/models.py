@@ -34,6 +34,7 @@ class Links(Base):
     link = mapped_column(String(250), primary_key=True)
     file_id = mapped_column(String(150), default=None)
     date = mapped_column(DateTime)
+    date_create = mapped_column(DateTime, default=datetime.now)
     # admin_id: Mapped[int | None] = mapped_column(ForeignKey("admins.id"), default=None)
     is_dataset = mapped_column(Boolean, default=None)
     is_cool = mapped_column(Boolean, default=None)
