@@ -36,6 +36,11 @@ async def index():
     return "Ok"
 
 
+@app.head("/")
+async def head():
+    return "Head"
+
+
 @app.on_event("startup")
 async def start():
     await bot.set_webhook(WEBHOOK_URL)
@@ -87,7 +92,7 @@ async def main() -> None:
     scheduler.add_job(send_scheduler_msg, 'cron', hour='*', minute='0')
     scheduler.add_job(PhotoService.get_all_photo, 'interval', days=1)
     scheduler.start()
-    config_uvicorn = uvicorn.Config(app=app, host="localhost", port=8080)
+    config_uvicorn = uvicorn.Config(app=app, host="0.0.0.0", port=8080)
     server = uvicorn.Server(config_uvicorn)
     task = asyncio.create_task(server.serve())
     await asyncio.gather(task)
