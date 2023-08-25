@@ -1,6 +1,7 @@
 import asyncio
 import json
 import os.path
+import time
 from threading import Thread
 
 import uvicorn
@@ -58,6 +59,20 @@ async def shutdown():
     await bot.session.close()
 
 
+async def start_scheduler():
+    scheduler = AsyncIOScheduler(timezone="Europe/Moscow")
+    scheduler.add_job(send_scheduler_msg, 'cron', hour='*', minute='0')
+    scheduler.add_job(PhotoService.get_all_photo, 'interval', days=1)
+    scheduler.start()
+    while True:
+        await asyncio.sleep(5)
+
+
+def start_scheduler_thread():
+    t = Thread(target=start_scheduler)
+    t.start()
+
+
 def start_uvicorn():
     uvicorn.run(app, host='0.0.0.0', port=8080)
 
@@ -98,10 +113,12 @@ async def main() -> None:
     dp.message.middleware.register(DBMiddleware())
     dp.callback_query.middleware.register(DBMiddleware())
     dp.include_routers(user_handlers.router, admin_handlers.router)
-    scheduler = AsyncIOScheduler(timezone="Europe/Moscow")
-    scheduler.add_job(send_scheduler_msg, 'cron', hour='*', minute='0')
-    scheduler.add_job(PhotoService.get_all_photo, 'interval', days=1)
-    scheduler.start()
+    # scheduler = AsyncIOScheduler(timezone="Europe/Moscow")
+    # scheduler.add_job(send_scheduler_msg, 'cron', hour='*', minute='0')
+    # scheduler.add_job(PhotoService.get_all_photo, 'interval', days=1)
+    # scheduler.start()
+    while True:
+        await asyncio.sleep(10)
     # config_uvicorn = uvicorn.Config(app=app, host="0.0.0.0", port=8080)
     # server = uvicorn.Server(config_uvicorn)
     # task = asyncio.create_task(server.serve())
@@ -113,8 +130,19 @@ async def main() -> None:
 if __name__ == '__main__':
     start_api_thread()
     asyncio.run(init_data())
-    while True:
-        try:
-            asyncio.run(main())
-        except Exception as ex:
-            logger.error(ex)
+    asyncio.run(start_scheduler())
+
+# uvicorn.run(app, host='0.0.0.0', port=8080)
+# start_api_thread()
+# start_scheduler_thread()
+# while True:
+#     time.sleep(5)
+# asyncio.run(init_data())
+# while True:
+
+# uvicorn.run(app, host='0.0.0.0', port=8080)
+
+# try:
+#     asyncio.run(main())
+# except Exception as ex:
+#     logger.error(ex)
