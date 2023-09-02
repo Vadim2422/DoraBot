@@ -25,7 +25,7 @@ from logs.logger import logger
 from parsing.photo_service import PhotoService
 
 WEBHOOK_PATH = f"/bot/{config.secret}"
-WEBHOOK_URL = "https://dorabot.vadim2422.repl.co" + WEBHOOK_PATH
+WEBHOOK_URL = "https://9743-31-131-210-133.ngrok.io" + WEBHOOK_PATH
 
 bot: Bot = Bot(token=config.bot.token)
 dp: Dispatcher = Dispatcher()
@@ -74,6 +74,8 @@ def start_scheduler_thread():
 
 
 def start_uvicorn():
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
     uvicorn.run(app, host='0.0.0.0', port=8080)
 
 
@@ -113,12 +115,14 @@ async def main() -> None:
     dp.message.middleware.register(DBMiddleware())
     dp.callback_query.middleware.register(DBMiddleware())
     dp.include_routers(user_handlers.router, admin_handlers.router)
+    task = asyncio.create_task(start_scheduler())
+    await asyncio.gather(task)
     # scheduler = AsyncIOScheduler(timezone="Europe/Moscow")
     # scheduler.add_job(send_scheduler_msg, 'cron', hour='*', minute='0')
     # scheduler.add_job(PhotoService.get_all_photo, 'interval', days=1)
     # scheduler.start()
-    while True:
-        await asyncio.sleep(10)
+    # while True:
+    #     await asyncio.sleep(10)
     # config_uvicorn = uvicorn.Config(app=app, host="0.0.0.0", port=8080)
     # server = uvicorn.Server(config_uvicorn)
     # task = asyncio.create_task(server.serve())
@@ -128,10 +132,9 @@ async def main() -> None:
 
 
 if __name__ == '__main__':
+    asyncio.run(main())
     start_api_thread()
     asyncio.run(init_data())
-    asyncio.run(start_scheduler())
-
 # uvicorn.run(app, host='0.0.0.0', port=8080)
 # start_api_thread()
 # start_scheduler_thread()
